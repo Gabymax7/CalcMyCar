@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Financiación MYCAR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* CSS: Variables y Estilos Base */
+        :root {
+            /* Paleta de colores base: Gris y Azul */
+            --color-primary: #3498db;     /* Azul brillante */
+            --color-secondary: #5f6a79;   /* Gris oscuro */
+            --color-text-light: #333;
+            --color-text-dark: #f4f4f9;
+            /* Nueva variable para el color blanco del logo en modo oscuro */
+            --color-logo-dark: #ffffff; 
+        }
+
+        /* Variables para Modo Claro */
+        [data-theme="light"] {
+            --color-background: #f4f4f9;
+            --color-container-bg: #fff;
+            --color-border: #ccc;
+            --color-input-bg: #fff;
+            --color-result-bg: #e9ecef;
+            --color-text: var(--color-text-light);
+            --color-result-text: var(--color-primary);
+            --color-icon-active: var(--color-primary);
+            --color-icon-inactive: #aaa;
+            --logo-my-color: var(--color-primary);     /* MY: Azul */
+            --logo-car-color: var(--color-secondary);  /* CAR: Gris */
+        }
+
+        /* Variables para Modo Oscuro */
+        [data-theme="dark"] {
+            --color-background: #1e1e1e;
+            --color-container-bg: #2a2a2a;
+            --color-border: #444;
+            --color-input-bg: #3c3c3c;
+            --color-result-bg: #4a4a4a;
+            --color-text: var(--color-text-dark);
+            --color-result-text: #66b3ff; /* Azul más claro */
+            --color-icon-active: #fff;
+            --color-icon-inactive: #888;
+            --logo-my-color: var(--color-primary);     /* MY: Azul (se mantiene) */
+            --logo-car-color: var(--color-logo-dark);  /* CAR: BLANCO */
+        }
+
+        /* Estilos Generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .calculator-container {
+            background-color: var(--color-container-bg);
+            padding: 30px;
+            padding-top: 50px; 
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        /* Logo y Título */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        /* Definición del logo: Usa variables para que los colores cambien con el tema */
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--logo-my-color); /* Aplica el color de MY */
+            margin-bottom: 5px;
+        }
+
+        .logo span {
+            color: var(--logo-car-color); /* Aplica el color de CAR (cambia con el tema) */
+        }
+        
+        h2 {
+            color: var(--color-text);
+            margin-top: 5px;
+            font-size: 1.5em;
+        }
+
+        /* Estilos de Formulario */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--color-text);
+            font-weight: 600;
+        }
+        
+        /* Estilo para todos los inputs */
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 17px;
+            background-color: var(--color-input-bg);
+            color: var(--color-text);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        /* Campos de Solo Lectura (Resultados) */
+        input[readonly] {
+            background-color: var(--color-result-bg);
+            font-weight: bold;
+            color: var(--color-result-text); 
+            border: 1px dashed var(--color-primary);
+        }
+
+        /* Ocultar flechas en campos de número (opcional, para estética) */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Separador */
+        hr {
+            border: 0;
+            height: 1px;
+            background: var(--color-border);
+            margin: 20px 0;
+        }
+
+        /* Contenedor de Iconos de Tema */
+        .theme-switcher {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.3em;
+            cursor: pointer;
+        }
+
+        .theme-switcher .icon {
+            margin-left: 10px;
+            transition: color 0.3s;
+        }
+        
+        /* Estilos de los iconos */
+        [data-theme="light"] #sun-icon {
+            color: var(--color-icon-active);
+        }
+        [data-theme="light"] #moon-icon {
+            color: var(--color-icon-inactive);
+        }
+        [data-theme="dark"] #moon-icon {
+            color: var(--color-icon-active);
+        }
+        [data-theme="dark"] #sun-icon {
+            color: var(--color-icon-inactive);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        
+        <div class="theme-switcher">
+            <i id="sun-icon" class="icon fa-solid fa-sun" onclick="setTheme('light')"></i>
+            <i id="moon-icon" class="icon fa-solid fa-moon" onclick="setTheme('dark')"></i>
+        </div>
+
+        <div class="header">
+            <div class="logo">MY<span>CAR</span></div>
+            <h2>Calculadora de Cuotas</h2>
+        </div>
+
+        <form id="calculatorForm">
+            
+            <label for="valorVehiculo">Valor del Vehículo ($):</label>
+            <input type="text" id="valorVehiculo" value="1.000.000" oninput="formatAndCalculate('valorVehiculo')" required>
+
+            <label for="entrega">Entrega ($):</label>
+            <input type="text" id="entrega" value="0" oninput="formatAndCalculate('entrega')" required>
+
+            <label for="saldo">Saldo ($):</label>
+            <input type="text" id="saldo" value="0" readonly>
+
+            <hr>
+
+            <label for="cantidadCuotas">Cantidad de Cuotas (1 a 24):</label>
+            <input type="number" id="cantidadCuotas" value="12" min="1" max="24" oninput="calcularCuota()" required>
+
+            <label for="interesMensual">Interés Mensual (1% a 10%):</label>
+            <input type="number" id="interesMensual" value="5" min="1" max="10" oninput="calcularCuota()" required>
+
+            <hr>
+
+            <label for="valorCuota">Valor de cuota ($):</label>
+            <input type="text" id="valorCuota" value="0.00" readonly>
+            
+        </form>
+    </div>
+
+    <script>
+        // --- FUNCIONES DE CÁLCULO Y UTILIDAD ---
+
+        // Función para limpiar el formato de miles y convertir a número
+        function cleanNumber(value) {
+            const cleaned = String(value).replace(/\./g, '').replace(/,/g, '.');
+            return parseFloat(cleaned) || 0;
+        }
+
+        // Función para formatear un número con separadores de miles (solo para campos de tipo texto)
+        function formatNumber(number) {
+            if (typeof number !== 'number') return '';
+            return number.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+        }
+
+        // Función para inputs de tipo texto (Valor Vehículo, Entrega)
+        function formatAndCalculate(elementId) {
+            const inputElement = document.getElementById(elementId);
+            const rawValue = inputElement.value;
+            
+            let numericValue = cleanNumber(rawValue);
+
+            // Validar que la entrega no sea mayor al valor del vehículo
+            if (elementId === 'entrega') {
+                const valorVehiculo = cleanNumber(document.getElementById('valorVehiculo').value);
+                numericValue = Math.min(numericValue, valorVehiculo); 
+            }
+
+            // Aplicar el formato de miles solo a los inputs tipo texto
+            inputElement.value = formatNumber(numericValue);
+           
+            // Ejecutar el cálculo de la cuota
+            calcularCuota();
+        }
+
+        // Función de Cálculo (Lógica AJUSTADA: Interés aplicado al Saldo + 4%)
+        function calcularCuota() {
+            // Obtener valores
+            const valorVehiculo = cleanNumber(document.getElementById('valorVehiculo').value);
+            const entrega = cleanNumber(document.getElementById('entrega').value);
+            let cantidadCuotas = cleanNumber(document.getElementById('cantidadCuotas').value);
+            const interesMensualPorcentaje = cleanNumber(document.getElementById('interesMensual').value);
+            
+            if (cantidadCuotas < 1) cantidadCuotas = 1;
+
+            // 1. Saldo: Valor del Vehículo - Entrega
+            const saldo = valorVehiculo - entrega;
+            document.getElementById('saldo').value = saldo.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+
+            if (saldo <= 0) {
+                document.getElementById('valorCuota').value = '0,00';
+                return;
+            }
+
+            // --- LÓGICA DE CÁLCULO AJUSTADA ---
+            
+            // 2. Saldo con Recargo Fijo: Saldo * 1.04
+            const saldoConRecargo = saldo * 1.04; 
+
+            // 3. Factor de Interés Simple Total
+            // Interés Total = (%Interés/100) * Cuotas
+            const factorInteresTotal = (interesMensualPorcentaje / 100) * cantidadCuotas;
+
+            // 4. Total a Financiar = (Saldo con Recargo) * (1 + Factor Interés Total)
+            // Esto aplica el interés sobre el Saldo con Recargo, como solicitaste.
+            const totalAFinanciar = saldoConRecargo * (1 + factorInteresTotal);
+
+            // 5. Valor de cuota
+            const valorCuotaBruto = totalAFinanciar / cantidadCuotas;
+
+            // --- FIN LÓGICA DE CÁLCULO AJUSTADA ---
+
+            // Mostrar el Valor de Cuota
+            document.getElementById('valorCuota').value = valorCuotaBruto.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+        }
+
+        // Función para cambiar el tema
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        // Inicializar la calculadora al cargar la página
+        window.onload = function() {
+            // Inicializar el formato de los campos de texto
+            formatAndCalculate('valorVehiculo');
+            formatAndCalculate('entrega');
+            
+            // Inicializar el cálculo para que se vean los valores iniciales.
+            calcularCuota();
+            
+            // Configurar el tema inicial basado en la preferencia del sistema
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDarkMode) {
+                setTheme('dark');
+            }
+        };
+    </script>
+
+</body>
+</html>
