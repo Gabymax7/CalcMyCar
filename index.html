@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Financiación MYCAR</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         /* CSS: Variables y Estilos Base */
         :root {
@@ -13,7 +14,6 @@
             --color-secondary: #5f6a79;   /* Gris oscuro */
             --color-text-light: #333;
             --color-text-dark: #f4f4f9;
-            /* Nueva variable para el color blanco del logo en modo oscuro */
             --color-logo-dark: #ffffff; 
         }
 
@@ -78,16 +78,15 @@
             margin-bottom: 25px;
         }
         
-        /* Definición del logo: Usa variables para que los colores cambien con el tema */
         .logo {
             font-size: 32px;
             font-weight: bold;
-            color: var(--logo-my-color); /* Aplica el color de MY */
+            color: var(--logo-my-color);
             margin-bottom: 5px;
         }
 
         .logo span {
-            color: var(--logo-car-color); /* Aplica el color de CAR (cambia con el tema) */
+            color: var(--logo-car-color);
         }
         
         h2 {
@@ -104,7 +103,6 @@
             font-weight: 600;
         }
         
-        /* Estilo para todos los inputs */
         input[type="text"], input[type="number"] {
             width: calc(100% - 22px);
             padding: 12px;
@@ -126,7 +124,6 @@
             border: 1px dashed var(--color-primary);
         }
 
-        /* Ocultar flechas en campos de número (opcional, para estética) */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none;
@@ -168,6 +165,34 @@
         [data-theme="dark"] #sun-icon {
             color: var(--color-icon-inactive);
         }
+
+        /* Estilos para el botón de WhatsApp */
+        .whatsapp-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            background-color: #25D366; /* Verde de WhatsApp */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .whatsapp-button:hover {
+            background-color: #128C7E;
+        }
+
+        .whatsapp-button i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -208,6 +233,10 @@
             <label for="valorCuota">Valor de cuota ($):</label>
             <input type="text" id="valorCuota" value="0.00" readonly>
             
+            <button type="button" class="whatsapp-button" onclick="compartirPorWhatsApp()">
+                <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
+            </button>
+            
         </form>
     </div>
 
@@ -233,22 +262,17 @@
             
             let numericValue = cleanNumber(rawValue);
 
-            // Validar que la entrega no sea mayor al valor del vehículo
             if (elementId === 'entrega') {
                 const valorVehiculo = cleanNumber(document.getElementById('valorVehiculo').value);
                 numericValue = Math.min(numericValue, valorVehiculo); 
             }
 
-            // Aplicar el formato de miles solo a los inputs tipo texto
             inputElement.value = formatNumber(numericValue);
-           
-            // Ejecutar el cálculo de la cuota
             calcularCuota();
         }
 
-        // Función de Cálculo (Lógica AJUSTADA: Interés aplicado al Saldo + 4%)
+        // Función de Cálculo (Lógica: Interés aplicado al Saldo + 4%)
         function calcularCuota() {
-            // Obtener valores
             const valorVehiculo = cleanNumber(document.getElementById('valorVehiculo').value);
             const entrega = cleanNumber(document.getElementById('entrega').value);
             let cantidadCuotas = cleanNumber(document.getElementById('cantidadCuotas').value);
@@ -256,7 +280,7 @@
             
             if (cantidadCuotas < 1) cantidadCuotas = 1;
 
-            // 1. Saldo: Valor del Vehículo - Entrega
+            // 1. Saldo
             const saldo = valorVehiculo - entrega;
             document.getElementById('saldo').value = saldo.toLocaleString('es-AR', { minimumFractionDigits: 2 });
 
@@ -265,26 +289,56 @@
                 return;
             }
 
-            // --- LÓGICA DE CÁLCULO AJUSTADA ---
+            // --- LÓGICA DE CÁLCULO AJUSTADA (Interés sobre Saldo + 4%) ---
             
             // 2. Saldo con Recargo Fijo: Saldo * 1.04
             const saldoConRecargo = saldo * 1.04; 
 
             // 3. Factor de Interés Simple Total
-            // Interés Total = (%Interés/100) * Cuotas
             const factorInteresTotal = (interesMensualPorcentaje / 100) * cantidadCuotas;
 
             // 4. Total a Financiar = (Saldo con Recargo) * (1 + Factor Interés Total)
-            // Esto aplica el interés sobre el Saldo con Recargo, como solicitaste.
             const totalAFinanciar = saldoConRecargo * (1 + factorInteresTotal);
 
             // 5. Valor de cuota
             const valorCuotaBruto = totalAFinanciar / cantidadCuotas;
 
-            // --- FIN LÓGICA DE CÁLCULO AJUSTADA ---
-
             // Mostrar el Valor de Cuota
             document.getElementById('valorCuota').value = valorCuotaBruto.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+        }
+
+        // Función para compartir el resultado por WhatsApp (NUEVO)
+        function compartirPorWhatsApp() {
+            // Obtener los valores formateados
+            const valorVehiculo = document.getElementById('valorVehiculo').value;
+            const entrega = document.getElementById('entrega').value;
+            const saldo = document.getElementById('saldo').value;
+            const cantidadCuotas = document.getElementById('cantidadCuotas').value;
+            const interesMensual = document.getElementById('interesMensual').value;
+            const valorCuota = document.getElementById('valorCuota').value;
+            
+            // Construir el mensaje
+            const mensaje = 
+                `*Cotización MYCAR*
+                
+*Vehículo:* $${valorVehiculo}
+*Entrega:* $${entrega}
+*Saldo a financiar:* $${saldo}
+
+*Condiciones:*
+- Cuotas: ${cantidadCuotas}
+- Interés Mensual: ${interesMensual}%
+
+*¡Valor de cuota final: $${valorCuota}*!`
+                
+            // Codificar el mensaje para la URL
+            const mensajeCodificado = encodeURIComponent(mensaje.trim());
+            
+            // Crear la URL de WhatsApp
+            const urlWhatsApp = `https://wa.me/?text=${mensajeCodificado}`;
+            
+            // Abrir la URL en una nueva ventana/pestaña
+            window.open(urlWhatsApp, '_blank');
         }
 
         // Función para cambiar el tema
@@ -294,14 +348,10 @@
 
         // Inicializar la calculadora al cargar la página
         window.onload = function() {
-            // Inicializar el formato de los campos de texto
             formatAndCalculate('valorVehiculo');
             formatAndCalculate('entrega');
-            
-            // Inicializar el cálculo para que se vean los valores iniciales.
             calcularCuota();
             
-            // Configurar el tema inicial basado en la preferencia del sistema
             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (isDarkMode) {
                 setTheme('dark');
